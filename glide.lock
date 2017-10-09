@@ -1,0 +1,8 @@
+hash: cfb774dc95962bf711f2ac522789678e316360205c4057de1848c48baabd1058
+updated: 2017-10-09T17:45:58.77431499+02:00
+imports:
+- name: github.com/go-playground/validator
+  version: a021b2ec9a8a8bb970f3f15bc42617cb520e8a64
+- name: github.com/labstack/echo
+  version: cec7629194fe4bf83b0c72d9a02d340c7a1468ac
+testImports: []

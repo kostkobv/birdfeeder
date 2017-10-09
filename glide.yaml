@@ -1,0 +1,6 @@
+package: .
+import:
+- package: github.com/labstack/echo
+  version: ~3.2.3
+- package: github.com/go-playground/validator
+  version: ~9.7.0

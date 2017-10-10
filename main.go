@@ -1,7 +1,8 @@
 package main
 
-import "./api"
+import "api"
+import "utils"
 
 func main() {
-	api.InitServer()
+	api.InitServer(":8081", utils.Init()).Start()
 }

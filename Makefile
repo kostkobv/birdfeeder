@@ -21,11 +21,11 @@ all: lint test
 ###########
 
 lint:
-	@gometalinter.v1 -e vendor --deadline=60s --vendor $(PROJECT_SOURCE)
+	@gometalinter.v1 --exclude=vendor --disable=gotype --fast --deadline=360s ./...
 
 #########
 # TESTS #
 #########
 
 test:
-	@go test $(shell go list ./... | grep -v vendor) -cover
+	@go test

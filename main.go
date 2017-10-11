@@ -2,9 +2,11 @@ package main
 
 import (
 	"api"
+	"queue"
 	"utils"
 )
 
 func main() {
-	api.InitServer(":8081", utils.Init()).Start()
+	q := queue.InitQueue()
+	api.InitServer(":8081", utils.Init(), q).Start()
 }

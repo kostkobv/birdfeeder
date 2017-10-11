@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"queue"
 )
 
 // Server interface
@@ -13,20 +14,21 @@ type Server interface {
 type server struct {
 	Instance *echo.Echo
 	Address  string
+	Queue    queue.MessageQueue
 }
 
 // InitServer initialize base API server
-func InitServer(address string, v echo.Validator) Server {
+func InitServer(address string, v echo.Validator, q queue.MessageQueue) Server {
 	e := echo.New()
 
-	e.Use(middleware.Logger())
+	//e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
 	e.Validator = v
 
-	RegisterEndpoints(e)
+	RegisterEndpoints(e, q)
 
-	return &server{e, address}
+	return &server{e, address, q}
 }
 
 // Start the server

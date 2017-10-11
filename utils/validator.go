@@ -4,7 +4,7 @@ import (
 	"config"
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
-	"gopkg.in/go-playground/validator.v9"
+	"github.com/go-playground/validator"
 	"regexp"
 	"strconv"
 	"strings"

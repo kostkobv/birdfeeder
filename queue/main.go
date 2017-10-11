@@ -47,17 +47,20 @@ func (q *queue) listenForChanges() {
 			continue
 		}
 
+		c := q.collection
+
 		// thread-safe lock
 		q.mutex.Lock()
-
-		// send the processing to the goroutine with passing the reference to our collection
-		go q.sendChanges(q.collection)
 
 		// meanwhile put new empty collection here (old collection would still be accessible within goroutine)
 		q.collection = []models.Message{}
 
 		// unlock
 		q.mutex.Unlock()
+
+		// send the processing to the goroutine with passing the reference to our collection
+		go q.sendChanges(c)
+
 	}
 }
 

@@ -48,12 +48,13 @@ func (q *queue) listenForChanges() {
 		}
 
 		c := q.collection
+		n := []models.Message{} // new collection
 
 		// thread-safe lock
 		q.mutex.Lock()
 
 		// meanwhile put new empty collection here (old collection would still be accessible within goroutine)
-		q.collection = []models.Message{}
+		q.collection = n
 
 		// unlock
 		q.mutex.Unlock()

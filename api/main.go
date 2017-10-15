@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"queue"
+	"utils"
 )
 
 // Server interface
@@ -18,7 +19,7 @@ type server struct {
 }
 
 // InitServer initialize base API server
-func InitServer(address string, v echo.Validator, q queue.MessageQueue) Server {
+func InitServer(address string, v echo.Validator, udh utils.UDHEncoder, q queue.MessageQueue) Server {
 	e := echo.New()
 
 	//e.Use(middleware.Logger())
@@ -26,7 +27,7 @@ func InitServer(address string, v echo.Validator, q queue.MessageQueue) Server {
 
 	e.Validator = v
 
-	RegisterEndpoints(e, q)
+	RegisterEndpoints(e, udh, q)
 
 	return &server{e, address, q}
 }

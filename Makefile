@@ -28,4 +28,4 @@ lint:
 #########
 
 test:
-	@go test
+	@go test -cover ./...

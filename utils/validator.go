@@ -12,7 +12,7 @@ import (
 
 var trans ut.Translator
 
-var msisdnRegex = regexp.MustCompile(`^[1-9]\d{6,14}$`)              // first symbol is number between 1 and 9; 6 to 14 digits
+var msisdnRegex = regexp.MustCompile(`^[1-9]\d{5,14}$`)              // first symbol is number between 1 and 9; 6 to 15 digits
 var textoriginatorRegex = regexp.MustCompile(`^[\p{L}\p{N}]{1,11}$`) // alphanumeric unicode string between 1 and 11 symbols
 
 // msisdnValidator checks if passed data is valid msisdn
@@ -92,8 +92,8 @@ func (v *cValidator) registerTranslation(tag string, text string) {
 	})
 }
 
-// Init the validator instance
-func Init() CustomValidator {
+// InitValidator is the CustomValidator factory method
+func InitValidator() CustomValidator {
 	en := en.New()
 	uni := ut.New(en, en)
 

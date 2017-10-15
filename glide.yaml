@@ -1,15 +1,20 @@
 package: .
 ignore:
 - api
-- utils
 - config
+- queue
+- utils
 import:
 - package: github.com/labstack/echo
   version: ~3.2.3
 - package: github.com/go-playground/validator
   version: ~9.7.0
-# echo dependency but not actually getting into the build in the end
 - package: github.com/dgrijalva/jwt-go
   version: ~3.0.0
 - package: github.com/messagebird/go-rest-api
   version: ~3.0.0
+- package: github.com/stretchr/testify
+  version: ~1.1.4
+- package: golang.org/x/text
+  subpackages:
+  - encoding

@@ -8,5 +8,7 @@ import (
 
 func main() {
 	q := queue.InitQueue()
-	api.InitServer(":8081", utils.Init(), q).Start()
+	udh := utils.InitEncoder()
+	v := utils.InitValidator()
+	api.InitServer(":8081", v, udh, q).Start()
 }

@@ -15,13 +15,14 @@ type MessageControllers interface {
 
 type mcontroller struct {
 	queue queue.MessageQueue
+	udh   utils.UDHEncoder
 }
 
 // HandleMessage controller
 func (mc *mcontroller) HandleMessage(c echo.Context) error {
 	var err error
 
-	m := models.InitMessage()
+	m := models.InitMessage(mc.udh)
 
 	if err = c.Bind(m); err != nil {
 		return err
@@ -32,12 +33,16 @@ func (mc *mcontroller) HandleMessage(c echo.Context) error {
 		return c.JSON(http.StatusUnprocessableEntity, t)
 	}
 
+	if err = m.ConvertBody(); err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, err)
+	}
+
 	mc.queue.Push(m)
 
 	return c.JSON(http.StatusOK, m)
 }
 
 // InitMessageControllers creates the message controller instance
-func InitMessageControllers(q queue.MessageQueue) MessageControllers {
-	return &mcontroller{q}
+func InitMessageControllers(q queue.MessageQueue, udh utils.UDHEncoder) MessageControllers {
+	return &mcontroller{q, udh}
 }

@@ -2,6 +2,7 @@ package: .
 ignore:
 - api
 - config
+- external
 - queue
 - utils
 import:

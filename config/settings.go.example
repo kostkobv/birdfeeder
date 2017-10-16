@@ -1,0 +1,8 @@
+package config
+
+const (
+	// MessageBirdKey for REST API
+	MessageBirdKey string = "your_api_key_here"
+	// ServerAddress for our REST API
+	ServerAddress  string = ":8081"
+)

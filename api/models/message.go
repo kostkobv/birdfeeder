@@ -1,35 +1,31 @@
 package models
 
-import "utils"
-
 // Message interface
 type Message interface {
-	ConvertBody() error
+	GetBody() string
+	GetRecipient() int64
+	GetOriginator() string
 }
 
 type mes struct {
-	Recipient       int64  `json:"recipient" validate:"required,msisdn"`
-	Originator      string `json:"originator" validate:"required,textoriginator|msisdn"`
-	Body            string `json:"message" validate:"required"`
-	encoder         utils.UDHEncoder
-	EncodedMessages []string
-	Encoding        string
+	Recipient  int64  `json:"recipient" validate:"required,msisdn"`
+	Originator string `json:"originator" validate:"required,textoriginator|msisdn"`
+	Body       string `json:"message" validate:"required,max=1377"`
 }
 
 // InitMessage is a Message factory method
-func InitMessage(e utils.UDHEncoder) Message {
-	return &mes{encoder: e}
+func InitMessage() Message {
+	return &mes{}
 }
 
-func (m *mes) ConvertBody() error {
-	encoded, err := m.encoder.Encode(m.Body)
+func (m *mes) GetBody() string {
+	return m.Body
+}
 
-	if err != nil {
-		return err
-	}
+func (m *mes) GetRecipient() int64 {
+	return m.Recipient
+}
 
-	m.EncodedMessages = encoded.Messages
-	m.Encoding = string(encoded.Encoding)
-
-	return nil
+func (m *mes) GetOriginator() string {
+	return m.Originator
 }

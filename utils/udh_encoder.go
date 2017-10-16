@@ -6,6 +6,9 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"fmt"
+	"math"
+	"text/template"
 	"unicode/utf16"
 )
 
@@ -25,10 +28,14 @@ var ErrUC2 error = errors.New("UC-2")
 
 // UDHEncoder encodes text to string representation of hex values (depends on the used character)
 type UDHEncoder interface {
-	Encode(m string) (*Encoded, error)
+	Encode(m string) *Encoded
+	GenerateUDH(p uint8, parts uint8, mesHash uint32) string
 }
 
 type udhenc struct {
+	udhUniqueID uint8
+	udhCache    map[uint32]string
+	udhTemplate *template.Template
 }
 
 // Encoded is a representation of message split depending on amount of symbols and encoding
@@ -37,9 +44,17 @@ type Encoded struct {
 	Messages []string
 }
 
+const udhTemplate = "050003{{.UniqueID}}{{.Parts}}{{.Part}}"
+
 // InitEncoder is UDHEncoder factory method
 func InitEncoder() UDHEncoder {
-	return &udhenc{}
+	t, _ := template.New("udh").Parse(udhTemplate) // #nosec
+
+	return &udhenc{
+		0x00,
+		map[uint32]string{},
+		t,
+	}
 }
 
 func getGSM7BitTwoCharsEncodedSymbol(r rune) ([]byte, error) {
@@ -101,74 +116,90 @@ func encodeGSMUC2(in string) []byte {
 	return buf.Bytes()
 }
 
-func splitMessages(enc []byte) []string {
-	return []string{hex.EncodeToString(enc)}
+const maxSplittedSMSParts = 9
+
+const nonsplittedPlainSMSLength = 160
+const splittedPlainSMSLength = 153
+const maxPlainSMSLength = splittedPlainSMSLength * maxSplittedSMSParts
+
+const unicodeSymbolLengthBytes = 2
+const nonsplittedUnicodeSMSLength = 70
+const splittedUnicodeSMSLength = 63
+const maxUnicodeSMSLength = splittedUnicodeSMSLength * maxSplittedSMSParts
+
+type smsSplittingLimits struct {
+	NonsplittedSMSLength int
+	SplittedSMSLength    int
+	MaxSMSLength         int
+	MaxSMSCharAmount     int
 }
 
-func octetsAmount(n, block int) int {
-	b := n / block
+func getSMSSplittingLimits(e Datacoding) *smsSplittingLimits {
+	var l *smsSplittingLimits
 
-	if n%block != 0 {
-		b++
-	}
-
-	return b
-}
-
-const blockLength = 8
-const charLength = 7
-
-func packOctet(out []byte, b byte, octIndex int, bitIndex uint8) (int, uint8) {
-	var i uint8
-
-	// let's go through the char slice
-	for ; i < charLength; i++ {
-		// convert 8 bits to 7-bit form
-		out[octIndex] = out[octIndex] | b>>i&1<<bitIndex
-
-		// moving to the next bit in the block
-		bitIndex++
-
-		if bitIndex == blockLength {
-			// moving to the next octet
-			octIndex++
-			// reset the bit index
-			bitIndex = 0
+	if e == Plain {
+		// message has plain encoding
+		l = &smsSplittingLimits{
+			NonsplittedSMSLength: nonsplittedPlainSMSLength,
+			SplittedSMSLength:    splittedPlainSMSLength,
+			MaxSMSLength:         maxPlainSMSLength,
+			MaxSMSCharAmount:     maxPlainSMSLength,
+		}
+	} else {
+		// message is unicode
+		l = &smsSplittingLimits{
+			NonsplittedSMSLength: nonsplittedUnicodeSMSLength * unicodeSymbolLengthBytes,
+			SplittedSMSLength:    splittedUnicodeSMSLength * unicodeSymbolLengthBytes,
+			MaxSMSLength:         maxUnicodeSMSLength * unicodeSymbolLengthBytes,
+			MaxSMSCharAmount:     maxUnicodeSMSLength,
 		}
 	}
 
-	return octIndex, bitIndex
+	return l
 }
 
-func packOctets(raw []byte) []byte {
-	octets := make([]byte, octetsAmount(len(raw)*charLength, blockLength))
+func splitMessages(enc []byte, e Datacoding) []string {
+	s := getSMSSplittingLimits(e)
+	l := len(enc)
 
-	var octIndex int   // current octet in octets
-	var bitIndex uint8 // current bit index in octet
-	var b byte         // current byte in octet
-	for i := range raw {
-		b = raw[i]
-		octIndex, bitIndex = packOctet(octets, b, octIndex, bitIndex)
+	// nothing to split here
+	if l < s.NonsplittedSMSLength {
+		return []string{hex.EncodeToString(enc)}
 	}
 
-	return handleOctetsEnding(octets, bitIndex, octIndex, b)
-}
+	var result []string
 
-func handleOctetsEnding(octets []byte, bitIndex uint8, octIndex int, b byte) []byte {
-	// 7 zero-bits could be confused with @ so <CR> is added in that case
-	if blockLength-bitIndex == charLength {
-		packOctet(octets, config.GSMCRSymbol, octIndex, bitIndex)
-	} else if bitIndex == 0 && b == config.GSMCRSymbol {
-		// if data ends with <CR> we will append empty octet and then add another <CR>
-		octets = append(octets, config.EmptyOctet)
-		packOctet(octets, config.GSMCRSymbol, octIndex, bitIndex)
+	// SMS length is longer than it could be. Let's take the max amount of symbols
+	if l > s.MaxSMSLength {
+		l = s.MaxSMSLength
 	}
 
-	return octets
+	// amount of parts
+	partsF := float64(l) / float64(s.SplittedSMSLength)
+	parts := int(math.Ceil(partsF))
+
+	// iterate through parts
+	for i := 0; i < parts; i++ {
+		// top range
+		up := (i + 1) * s.SplittedSMSLength
+
+		// bottom range
+		down := i * s.SplittedSMSLength
+
+		// if it's a last part let's set the top range to the message length, so no panic would be thrown
+		if up > l {
+			up = l
+		}
+
+		// append stringified part to the result
+		result = append(result, hex.EncodeToString(enc[down:up]))
+	}
+
+	return result
 }
 
 // Encode returns the result of hex string encoding of the provided string depending on the used symbols
-func (e *udhenc) Encode(m string) (*Encoded, error) {
+func (e *udhenc) Encode(m string) *Encoded {
 	result := &Encoded{
 		Encoding: Plain,
 	}
@@ -178,11 +209,39 @@ func (e *udhenc) Encode(m string) (*Encoded, error) {
 	if err == ErrUC2 {
 		enc = encodeGSMUC2(m)
 		result.Encoding = Unicode
-	} else {
-		enc = packOctets(enc)
 	}
 
-	result.Messages = splitMessages(enc)
+	result.Messages = splitMessages(enc, result.Encoding)
 
-	return result, nil
+	return result
+}
+
+func (e *udhenc) GenerateUDH(p uint8, parts uint8, mesHash uint32) string {
+	if v, ok := e.udhCache[mesHash]; ok {
+		return v
+	}
+
+	e.udhUniqueID++
+
+	data := map[string]string{
+		"Parts":    e.formatUintString(parts),
+		"Part":     e.formatUintString(p),
+		"UniqueID": e.formatUintString(e.udhUniqueID),
+	}
+
+	var udh string
+
+	buf := bytes.NewBufferString(udh)
+
+	_ = e.udhTemplate.Execute(buf, data) // #nosec
+
+	if e.udhUniqueID == 0 {
+		e.udhCache = map[uint32]string{mesHash: udh}
+	}
+
+	return buf.String()
+}
+
+func (e *udhenc) formatUintString(x uint8) string {
+	return fmt.Sprintf("%02x", x)
 }

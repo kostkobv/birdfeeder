@@ -2,13 +2,16 @@ package main
 
 import (
 	"api"
+	"config"
+	"external"
 	"queue"
 	"utils"
 )
 
 func main() {
-	q := queue.InitQueue()
+	mb := external.InitMessageBirdClient(config.MessageBirdKey)
+	q := queue.InitQueue(mb)
 	udh := utils.InitEncoder()
 	v := utils.InitValidator()
-	api.InitServer(":8081", v, udh, q).Start()
+	api.InitServer(config.ServerAddress, v, udh, q).Start()
 }

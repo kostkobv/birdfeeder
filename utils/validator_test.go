@@ -182,4 +182,18 @@ func TestHumaniseValidationErrors(t *testing.T) {
 
 		assert.Equal(t, err, map[string]string{"a": "use valid MSISDN or alphanumeric value (max. 11 symbols long)"})
 	})
+
+	t.Run("max error", func(t *testing.T) {
+		v := utils.InitValidator()
+
+		type vStruct struct {
+			A string `validate:"textoriginator|msisdn"`
+		}
+
+		e := v.Validate(vStruct{""})
+
+		err := utils.HumaniseValidationErrors(e)
+
+		assert.Equal(t, err, map[string]string{"a": "use valid MSISDN or alphanumeric value (max. 11 symbols long)"})
+	})
 }

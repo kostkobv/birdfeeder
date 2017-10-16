@@ -22,7 +22,7 @@ type server struct {
 func InitServer(address string, v echo.Validator, udh utils.UDHEncoder, q queue.MessageQueue) Server {
 	e := echo.New()
 
-	//e.Use(middleware.Logger())
+	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
 	e.Validator = v

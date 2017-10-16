@@ -2,13 +2,18 @@
 
 import http from "k6/http";
 
+const numbers = [31123123123, 32123123123, 33123123123];
+const params =  { headers: { "Content-Type": "application/json" } };
+const url = "http://localhost:8081/message";
+
 export default function() {
-    const url = "http://localhost:8081/message";
-    const payload = `{
-        "recipient": 123456789,
-        "originator": "hey",
-        "message": "Message!"
-    }`;
-    const params =  { headers: { "Content-Type": "application/json" } };
-    http.post(url, payload, params);
+    for (let i = 0; i < numbers.length; i++) {
+        const payload = `{
+            "recipient": ${numbers[i]},
+            "originator": "hey",
+            "message": "Message!"
+        }`;
+
+        http.post(url, payload, params);
+    }
 };

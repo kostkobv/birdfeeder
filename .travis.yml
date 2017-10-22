@@ -5,9 +5,10 @@ before_install:
   - go get -v github.com/Masterminds/glide
   - go get -u github.com/mattn/goveralls
   - go get -u gopkg.in/alecthomas/gometalinter.v1
+  - GOPATH=$GOPATH:/home/travis/gopath/src/github.com/kostkobv/messagebirdtest
 install:
   - glide install
   - gometalinter.v1 -i
 script:
-  - make
   - goveralls -service travis-ci -repotoken $COVERALLS_TOKEN
+  - make lint

@@ -2,23 +2,24 @@ package controllers
 
 import (
 	"api/models"
-	"github.com/labstack/echo"
 	"hash/fnv"
 	"net/http"
 	"queue"
 	qModels "queue/models"
-	"strconv"
 	"utils"
+
+	"github.com/labstack/echo"
 )
 
 // MessageControllers interface consist all the message endpoints handlers
 type MessageControllers interface {
 	HandleMessage(c echo.Context) error
+	SendMessageToQueue(m models.Message)
 }
 
 type mcontroller struct {
-	queue queue.MessageQueue
-	udh   utils.UDHEncoder
+	Queue queue.MessageQueue
+	Udh   utils.UDHEncoder
 }
 
 // HandleMessage controller
@@ -36,30 +37,28 @@ func (mc *mcontroller) HandleMessage(c echo.Context) error {
 		return c.JSON(http.StatusUnprocessableEntity, t)
 	}
 
-	go mc.sendMessageToQueue(m)
+	go mc.SendMessageToQueue(m)
 
 	return c.JSON(http.StatusOK, m)
 }
 
-func (mc *mcontroller) sendMessageToQueue(m models.Message) {
+func (mc *mcontroller) SendMessageToQueue(m models.Message) {
 	body := m.GetBody()
-	orig := m.GetOriginator()
-	mes := mc.udh.Encode(body)
+	mes := mc.Udh.SplitTextMessage(body)
 
 	parts := len(mes.Messages)
 
 	var udh string
 
+	hash := mc.generateMessageHash(body)
+
 	for p, encoded := range mes.Messages {
 		if parts > 1 {
-			pStringified := strconv.FormatInt(int64(p+1), 16)
-			partsStringified := strconv.FormatInt(int64(parts), 16)
-			hash := mc.generateMessageHash(pStringified, partsStringified, body, orig)
-			udh = mc.udh.GenerateUDH(uint8(p+1), uint8(parts), hash)
+			udh = mc.Udh.GenerateUDH(uint8(p+1), uint8(parts), hash)
 		}
 
 		qm := qModels.InitQueueMessage(encoded, mes.Encoding, m, udh)
-		mc.queue.Push(qm)
+		mc.Queue.Push(qm)
 	}
 }
 

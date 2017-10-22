@@ -3,6 +3,7 @@ ignore:
 - api
 - config
 - external
+- mocks
 - queue
 - utils
 import:

@@ -24,17 +24,18 @@ const (
 )
 
 // ErrUC2 is a semantic name for error that is thrown after attempt to encode UC-2 message as GSM 7-bit
-var ErrUC2 error = errors.New("UC-2")
+var ErrUC2 = errors.New("UC-2")
 
 // UDHEncoder encodes text to string representation of hex values (depends on the used character)
 type UDHEncoder interface {
 	Encode(m string) *Encoded
 	GenerateUDH(p uint8, parts uint8, mesHash uint32) string
+	SplitTextMessage(m string) *Encoded
 }
 
 type udhenc struct {
 	udhUniqueID uint8
-	udhCache    map[uint32]string
+	udhCache    map[uint32]uint8
 	udhTemplate *template.Template
 }
 
@@ -52,7 +53,7 @@ func InitEncoder() UDHEncoder {
 
 	return &udhenc{
 		0x00,
-		map[uint32]string{},
+		map[uint32]uint8{},
 		t,
 	}
 }
@@ -116,6 +117,7 @@ func encodeGSMUC2(in string) []byte {
 	return buf.Bytes()
 }
 
+// by GSM documentation it can be up to 255 but MB documentation says up to 9
 const maxSplittedSMSParts = 9
 
 const nonsplittedPlainSMSLength = 160
@@ -158,7 +160,7 @@ func getSMSSplittingLimits(e Datacoding) *smsSplittingLimits {
 	return l
 }
 
-func splitMessages(enc []byte, e Datacoding) []string {
+func splitBinaryMessages(enc []byte, e Datacoding) []string {
 	s := getSMSSplittingLimits(e)
 	l := len(enc)
 
@@ -211,22 +213,109 @@ func (e *udhenc) Encode(m string) *Encoded {
 		result.Encoding = Unicode
 	}
 
-	result.Messages = splitMessages(enc, result.Encoding)
+	result.Messages = splitBinaryMessages(enc, result.Encoding)
+
+	return result
+}
+
+func splitPlainGSM7bit(m string) ([]string, error) {
+	result := []string{}
+
+	sum := 0
+	part := []rune{}
+
+	for _, r := range m {
+		s, err := getGSM7BitEncodedSymbol(r)
+
+		// Unicode!
+		if err != nil {
+			return result, ErrUC2
+		}
+
+		ls := len(s)
+
+		if ls+sum > splittedPlainSMSLength {
+			result = append(result, string(part))
+			part = []rune{}
+			sum = 0
+		}
+
+		sum += ls
+		part = append(part, r)
+	}
+
+	result = append(result, string(part))
+
+	if len(result) == 2 && sum+splittedPlainSMSLength <= nonsplittedPlainSMSLength {
+		return []string{m}, nil
+	}
+
+	return result, nil
+}
+
+func splitPlainGSMUC2(m string) []string {
+	runesM := []rune(m)
+	l := len(runesM)
+
+	if l <= nonsplittedUnicodeSMSLength {
+		return []string{m}
+	}
+
+	parts := l/splittedUnicodeSMSLength + 1
+	result := []string{}
+
+	for i := 0; i < parts; i++ {
+		// top range
+		up := (i + 1) * splittedUnicodeSMSLength
+
+		down := i * splittedUnicodeSMSLength
+
+		// if it's a last part let's set the top range to the message length, so no panic would be thrown
+		if up > l {
+			up = l
+		}
+
+		result = append(result, string(runesM[down:up]))
+	}
+
+	return result
+}
+
+func (e *udhenc) SplitTextMessage(m string) *Encoded {
+	result := &Encoded{
+		Encoding: Plain,
+	}
+
+	var err error
+
+	result.Messages, err = splitPlainGSM7bit(m)
+
+	if err == ErrUC2 {
+		result.Messages = splitPlainGSMUC2(m)
+		result.Encoding = Unicode
+	}
+
+	if len(result.Messages) > maxSplittedSMSParts {
+		result.Messages = result.Messages[:maxSplittedSMSParts]
+	}
 
 	return result
 }
 
 func (e *udhenc) GenerateUDH(p uint8, parts uint8, mesHash uint32) string {
-	if v, ok := e.udhCache[mesHash]; ok {
-		return v
-	}
+	var uniqueID uint8
 
-	e.udhUniqueID++
+	if v, ok := e.udhCache[mesHash]; ok {
+		uniqueID = v
+	} else {
+		e.udhUniqueID++
+		uniqueID = e.udhUniqueID
+	}
 
 	data := map[string]string{
 		"Parts":    e.formatUintString(parts),
 		"Part":     e.formatUintString(p),
-		"UniqueID": e.formatUintString(e.udhUniqueID),
+		"UniqueID": e.formatUintString(uniqueID),
 	}
 
 	var udh string
@@ -236,7 +325,9 @@ func (e *udhenc) GenerateUDH(p uint8, parts uint8, mesHash uint32) string {
 	_ = e.udhTemplate.Execute(buf, data) // #nosec
 
 	if e.udhUniqueID == 0 {
-		e.udhCache = map[uint32]string{mesHash: udh}
+		e.udhCache = map[uint32]uint8{mesHash: uniqueID}
+	} else {
+		e.udhCache[mesHash] = uniqueID
 	}
 
 	return buf.String()

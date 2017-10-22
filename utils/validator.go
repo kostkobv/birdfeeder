@@ -2,12 +2,13 @@ package utils
 
 import (
 	"config"
-	"github.com/go-playground/locales/en"
-	ut "github.com/go-playground/universal-translator"
-	"github.com/go-playground/validator"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/go-playground/locales/en"
+	ut "github.com/go-playground/universal-translator"
+	"github.com/go-playground/validator"
 )
 
 var trans ut.Translator

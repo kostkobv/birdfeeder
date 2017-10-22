@@ -1,6 +1,6 @@
 language: go
-  go:
-    - 1.9.1
+go:
+  - 1.9.1
 before_install:
   - go get -v github.com/Masterminds/glide
   - go get github.com/axw/gocov/gocov

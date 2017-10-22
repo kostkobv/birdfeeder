@@ -3,10 +3,9 @@ go:
   - 1.9.1
 before_install:
   - go get -v github.com/Masterminds/glide
-  - go get github.com/axw/gocov/gocov
   - go get github.com/mattn/goveralls
 install:
   - glide install
 script:
-  - go test -v -covermode=count -coverprofile=coverage.out ./...
-  - goveralls -coverprofile=coverage.out -service travis-ci -repotoken $COVERALLS_TOKEN
+  - make
+  - goveralls -service travis-ci -repotoken $COVERALLS_TOKEN

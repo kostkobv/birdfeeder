@@ -21,7 +21,7 @@ all: lint test
 ###########
 
 lint:
-	@gometalinter.v1 --exclude=vendor --disable=gotype --fast --deadline=360s ./...
+	@gometalinter.v1 --exclude="(mocks|vendor)" --disable=gotype --fast --deadline=360s ./...
 
 #########
 # TESTS #

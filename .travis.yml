@@ -2,12 +2,12 @@ language: go
 go:
   - 1.9.1
 before_install:
-  - export GOPATH="${TRAVIS_BUILD_DIR}:$GOPATH"
   - go get -v github.com/Masterminds/glide
   - go get -u gopkg.in/alecthomas/gometalinter.v1
 install:
   - glide install
   - gometalinter.v1 -i
+  - export GOPATH="${TRAVIS_BUILD_DIR}:$GOPATH"
 script:
   - bash run_tests.sh
   - make lint

@@ -126,7 +126,7 @@ const maxPlainSMSLength = splittedPlainSMSLength * maxSplittedSMSParts
 
 const unicodeSymbolLengthBytes = 2
 const nonsplittedUnicodeSMSLength = 70
-const splittedUnicodeSMSLength = 63
+const splittedUnicodeSMSLength = 67
 const maxUnicodeSMSLength = splittedUnicodeSMSLength * maxSplittedSMSParts
 
 type smsSplittingLimits struct {

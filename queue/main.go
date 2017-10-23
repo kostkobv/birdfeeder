@@ -1,6 +1,7 @@
 package queue
 
 import (
+	"encoding/json"
 	"external"
 	"fmt"
 	qModels "queue/models"
@@ -138,8 +139,9 @@ func (q *queue) Push(m ...qModels.QueueMessage) {
 func (q *queue) SendMessage(m qModels.QueueMessage) {
 	params := external.InitMessageBirdParams(m.GetDataCoding(), m.GetUDH())
 	a, err := q.mb.NewMessage(m.GetOriginator(), m.GetRecipients(), m.GetMessage(), params)
+	res, _ := json.Marshal(a)
 
-	fmt.Println(m, m.GetUDH(), err, a)
+	fmt.Println(err, string(res))
 
 	if err != nil {
 		q.Push(m)

@@ -8,6 +8,12 @@ before_install:
 install:
   - glide install
   - gometalinter.v1 -i
+  - go install github.com/kostkobv/messagebirdtest/api
+  - go install github.com/kostkobv/messagebirdtest/config
+  - go install github.com/kostkobv/messagebirdtest/external
+  - go install github.com/kostkobv/messagebirdtest/mocks
+  - go install github.com/kostkobv/messagebirdtest/queue
+  - go install github.com/kostkobv/messagebirdtest/utils
 script:
   - bash run_tests.sh
   - make lint

@@ -3,18 +3,13 @@ go:
   - 1.9.1
 before_install:
   - go get -v github.com/Masterminds/glide
-  - go get -u github.com/mattn/goveralls
   - go get -u gopkg.in/alecthomas/gometalinter.v1
   - GOPATH=$GOPATH:/home/travis/gopath/src/github.com/kostkobv/messagebirdtest
 install:
   - glide install
   - gometalinter.v1 -i
-  - go get github.com/kostkobv/messagebirdtest/api
-  - go get github.com/kostkobv/messagebirdtest/config
-  - go get github.com/kostkobv/messagebirdtest/external
-  - go get github.com/kostkobv/messagebirdtest/mocks
-  - go get github.com/kostkobv/messagebirdtest/queue
-  - go get github.com/kostkobv/messagebirdtest/utils
 script:
-  - goveralls -service travis-ci -repotoken $COVERALLS_TOKEN
+  - bash run_tests.sh
   - make lint
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

@@ -28,4 +28,4 @@ lint:
 #########
 
 test:
-	@go test -cover -race ./...
+	@go test -cover -coverprofile=coverage.txt -covermode=atomic -race $(shell glide novendor | grep -Ev '(mocks|config)')

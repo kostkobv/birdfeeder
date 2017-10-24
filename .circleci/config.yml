@@ -23,9 +23,10 @@ jobs:
 
       # specify any bash command here prefixed with `run: `
       - run: go get -v github.com/Masterminds/glide
-      - run: go get -u gopkg.in/alecthomas/gometalinter.v1
       - run: glide install
-      - run: gometalinter.v1 -i
+      - run: rm -rf github.com
       - run: ./run_tests.sh
+      - run: go get -u gopkg.in/alecthomas/gometalinter.v1
+      - run: gometalinter.v1 -i
       - run: make lint
       - run: bash <(curl -s https://codecov.io/bash)

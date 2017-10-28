@@ -43,7 +43,7 @@ func (m *qMessage) AddRecipient(r int64) error {
 	l := len(m.recipients)
 
 	i := sort.Search(l, func(i int) bool {
-		return r >= m.recipients[i]
+		return r == m.recipients[i]
 	})
 
 	if i < len(m.recipients) {

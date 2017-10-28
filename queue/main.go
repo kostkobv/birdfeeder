@@ -1,7 +1,6 @@
 package queue
 
 import (
-	"encoding/json"
 	"external"
 	"fmt"
 	qModels "queue/models"
@@ -16,10 +15,10 @@ type MessageQueue interface {
 }
 
 type queue struct {
-	pipe       chan qModels.QueueMessage
-	mutex      *sync.Mutex
-	collection []qModels.QueueMessage
-	mb         external.MessageBirdClient
+	Pipe       chan qModels.QueueMessage
+	Mutex      *sync.Mutex
+	Collection []qModels.QueueMessage
+	Mb         external.MessageBirdClient
 }
 
 // InitQueue for sending messages to third-parties
@@ -34,11 +33,11 @@ func InitQueue(mb external.MessageBirdClient) MessageQueue {
 
 func (q *queue) startCollectingChanges() {
 	// start to get messages from the queue and add it to the collection
-	for v := range q.pipe {
+	for v := range q.Pipe {
 		// append is not thread-safe
-		q.mutex.Lock()
-		q.collection = append(q.collection, v)
-		q.mutex.Unlock()
+		q.Mutex.Lock()
+		q.Collection = append(q.Collection, v)
+		q.Mutex.Unlock()
 	}
 }
 
@@ -49,23 +48,23 @@ func (q *queue) listenForChanges() {
 		time.Sleep(time.Second)
 
 		// prevent data race
-		q.mutex.Lock()
-		l := len(q.collection)
-		q.mutex.Unlock()
+		q.Mutex.Lock()
+		l := len(q.Collection)
+		q.Mutex.Unlock()
 
 		// do nothing if we have nothing in the queue
 		if l == 0 {
 			continue
 		}
 
-		c := q.collection             // old collection
+		c := q.Collection             // old collection
 		n := []qModels.QueueMessage{} // new empty collection
 
 		// not thread-safe
-		q.mutex.Lock()
+		q.Mutex.Lock()
 		// meanwhile put new empty collection here (old collection would still be accessible within goroutine)
-		q.collection = n // swap collections
-		q.mutex.Unlock()
+		q.Collection = n // swap collections
+		q.Mutex.Unlock()
 
 		// send the processing to the goroutine with passing the reference to our collection
 		go q.sendChanges(c)
@@ -132,16 +131,15 @@ func (q *queue) getUniqueMessages(c []qModels.QueueMessage) []qModels.QueueMessa
 
 func (q *queue) Push(m ...qModels.QueueMessage) {
 	for _, mes := range m {
-		q.pipe <- mes
+		q.Pipe <- mes
 	}
 }
 
 func (q *queue) SendMessage(m qModels.QueueMessage) {
 	params := external.InitMessageBirdParams(m.GetDataCoding(), m.GetUDH())
-	a, err := q.mb.NewMessage(m.GetOriginator(), m.GetRecipients(), m.GetMessage(), params)
-	res, _ := json.Marshal(a)
+	a, err := q.Mb.NewMessage(m.GetOriginator(), m.GetRecipients(), m.GetMessage(), params)
 
-	fmt.Println(err, string(res))
+	fmt.Printf("Sent message: %#v; Error: %#v; Time: %v", a, err, time.Now())
 
 	if err != nil {
 		q.Push(m)

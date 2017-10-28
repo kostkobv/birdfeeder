@@ -1,15 +1,16 @@
 package api
 
 import (
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
 	"queue"
 	"utils"
+
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 )
 
 // Server interface
 type Server interface {
-	Start()
+	Start() error
 }
 
 type server struct {
@@ -33,6 +34,8 @@ func InitServer(address string, v echo.Validator, udh utils.UDHEncoder, q queue.
 }
 
 // Start the server
-func (s *server) Start() {
-	s.Instance.Logger.Fatal(s.Instance.Start(s.Address))
+func (s *server) Start() error {
+	e := s.Instance.Start(s.Address)
+	s.Instance.Logger.Error(e)
+	return e
 }

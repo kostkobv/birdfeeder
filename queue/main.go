@@ -139,7 +139,8 @@ func (q *queue) SendMessage(m qModels.QueueMessage) {
 	params := external.InitMessageBirdParams(m.GetDataCoding(), m.GetUDH())
 	a, err := q.Mb.NewMessage(m.GetOriginator(), m.GetRecipients(), m.GetMessage(), params)
 
-	fmt.Printf("Sent message: %#v; Error: %#v; Time: %v", a, err, time.Now())
+	fmt.Println("----------------")
+	fmt.Printf("Sent message:\n %#v;\n\n Error:\n %#v;\n\n Time:\n %v\n", a, err, time.Now())
 
 	if err != nil {
 		q.Push(m)

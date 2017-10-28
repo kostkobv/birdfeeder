@@ -115,9 +115,9 @@ func TestQueue_Push(t *testing.T) {
 			rm3 := apiModels.InitMessage()
 			reflect.ValueOf(rm3).Elem().FieldByName("Recipient").SetInt(123123123)
 
-			m1 := models.InitQueueMessage("m1", "", apiModels.InitMessage(), "")
-			m2 := models.InitQueueMessage("m2", "", rm2, "")
-			m3 := models.InitQueueMessage("m2", "", rm3, "")
+			m1 := models.InitQueueMessage("m1", "", apiModels.InitMessage(), "1")
+			m2 := models.InitQueueMessage("m2", "", rm2, "2")
+			m3 := models.InitQueueMessage("m2", "", rm3, "2")
 
 			mbMes := &messagebird.Message{}
 			err := errors.New("err")
@@ -132,8 +132,4 @@ func TestQueue_Push(t *testing.T) {
 			mb.AssertCalled(t, "NewMessage", mock.Anything, []string{"123", "123123123"}, "m2", mock.Anything)
 		})
 	})
-}
-
-func TestQueue_SendMessage(t *testing.T) {
-
 }

@@ -28,7 +28,9 @@ Forwards message to MessageBird API
 
 #### Required
 `recipient`: valid recipient MSISDN,
+
 `originator`: valid originator accordingly to MessageBird documentation,
+
 `message`: message content
 
 #### Response

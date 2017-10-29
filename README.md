@@ -159,3 +159,8 @@ To run tests
 ```bash
 make test
 ```
+
+To build binaries
+```bash
+make build
+```

@@ -150,7 +150,8 @@ func (q *queue) SendMessage(m qModels.QueueMessage) {
 	a, err := q.Mb.NewMessage(m.GetOriginator(), m.GetRecipients(), m.GetMessage(), params)
 
 	fmt.Println("----------------")
-	fmt.Printf("Sent message:\n %#v;\n\n Error:\n %#v;\n\n Time:\n %v\n", a, err, time.Now())
+	fmt.Printf("MB Response:\n %#v;\n\nParams:\n %#v;\n\nOriginal message:\n %#v;\n\nError:\n %#v;\n\n Time:\n %v\n", a, params, m, err, time.Now())
+	fmt.Println("----------------")
 
 	if err != nil {
 		q.Push(m)

@@ -1,6 +1,10 @@
-hash: c9ff6857fe159a83d914f99365ff3f580c13d69be9c6775ef88a5c9a448209b9
-updated: 2017-10-22T21:58:05.183268384+02:00
+hash: d92f40cf9813dee8a8db7d7f19a010a6c08c04618b999c05fada659a4ddc50cb
+updated: 2017-10-29T15:18:04.459506714+01:00
 imports:
+- name: github.com/davecgh/go-spew
+  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  subpackages:
+  - spew
 - name: github.com/dgrijalva/jwt-go
   version: d2709f9f1f31ebcda9651b03077758c1f3a0018c
 - name: github.com/go-playground/locales
@@ -29,6 +33,12 @@ imports:
   version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
 - name: github.com/messagebird/go-rest-api
   version: a505e01a7789c134e09737b4ed78aff748848259
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib
+- name: github.com/stretchr/objx
+  version: cbeaeb16a013161a98496fad62933b1d21786672
 - name: github.com/stretchr/testify
   version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
   subpackages:
@@ -56,14 +66,4 @@ imports:
   version: f28f36722d5ef2f9655ad3de1f248e3e52ad5ebd
   subpackages:
   - encoding
-testImports:
-- name: github.com/davecgh/go-spew
-  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
-  subpackages:
-  - spew
-- name: github.com/pmezard/go-difflib
-  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
-  subpackages:
-  - difflib
-- name: github.com/stretchr/objx
-  version: cbeaeb16a013161a98496fad62933b1d21786672
+testImports: []

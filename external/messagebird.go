@@ -1,13 +1,15 @@
 package external
 
 import (
-	mb "github.com/messagebird/go-rest-api"
 	"time"
 	"utils"
+
+	mb "github.com/messagebird/go-rest-api"
 )
 
 // MessageBirdClient is an overlay for MessageBird Client
 type MessageBirdClient interface {
+	// NewMessage submits message to the MessageBird API
 	NewMessage(originator string, recipients []string, body string, msgParams *mb.MessageParams) (*mb.Message, error)
 }
 

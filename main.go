@@ -4,6 +4,7 @@ import (
 	"api"
 	"config"
 	"external"
+	"fmt"
 	"queue"
 	"utils"
 )
@@ -13,5 +14,6 @@ func main() {
 	q := queue.InitQueue(mb)
 	udh := utils.InitEncoder()
 	v := utils.InitValidator()
-	api.InitServer(config.ServerAddress, v, udh, q).Start()
+	err := api.InitServer(config.ServerAddress, v, udh, q).Start()
+	fmt.Println(err)
 }

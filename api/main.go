@@ -26,6 +26,7 @@ func InitServer(address string, v echo.Validator, udh utils.UDHEncoder, q queue.
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
+	// assign custom validator
 	e.Validator = v
 
 	RegisterEndpoints(e, udh, q)

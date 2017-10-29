@@ -21,7 +21,7 @@ type QueueMessage interface {
 }
 
 type qMessage struct {
-	recipients      []int64
+	recipients      []string
 	Message         string
 	Encoding        utils.Datacoding
 	OriginalMessage models.Message
@@ -30,7 +30,7 @@ type qMessage struct {
 
 // InitQueueMessage factory method to create QueueMessage
 func InitQueueMessage(message string, enc utils.Datacoding, m models.Message, udh string) QueueMessage {
-	return &qMessage{[]int64{}, message, enc, m, udh}
+	return &qMessage{[]string{}, message, enc, m, udh}
 }
 
 // GetRecipientsAmount returns the amount of recipients currently added to the message
@@ -38,19 +38,20 @@ func (m *qMessage) GetRecipientsAmount() int64 {
 	return int64(len(m.recipients))
 }
 
-// AddRecipient adds recipient to the list and returns an error such recipient is already added
+// AddRecipient adds recipient to the list and returns an error if such recipient is already added
 func (m *qMessage) AddRecipient(r int64) error {
+	rs := strconv.FormatInt(r, 10)
 	l := len(m.recipients)
 
 	i := sort.Search(l, func(i int) bool {
-		return r == m.recipients[i]
+		return rs == m.recipients[i]
 	})
 
 	if i < len(m.recipients) {
 		return errors.New("existing recipient")
 	}
 
-	m.recipients = append(m.recipients, r)
+	m.recipients = append(m.recipients, rs)
 
 	return nil
 }
@@ -70,15 +71,11 @@ func (m *qMessage) GetOriginator() string {
 	return m.OriginalMessage.GetOriginator()
 }
 
-// GetRecipients immutable collection of added recipients
+// GetRecipients returns collection of added recipients copy
 func (m *qMessage) GetRecipients() []string {
-	c := make([]string, len(m.recipients))
-
-	for i, r := range m.recipients {
-		c[i] = strconv.FormatInt(r, 10)
-	}
-
-	return c
+	cr := make([]string, len(m.recipients))
+	copy(cr, m.recipients)
+	return cr
 }
 
 // GetDataCoding of the message

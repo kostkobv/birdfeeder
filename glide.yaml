@@ -2,6 +2,7 @@ package: .
 ignore:
 - api
 - config
+- docs
 - external
 - mocks
 - queue

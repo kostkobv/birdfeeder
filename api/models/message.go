@@ -18,14 +18,17 @@ func InitMessage() Message {
 	return &mes{}
 }
 
+// GetBody returns message body
 func (m *mes) GetBody() string {
 	return m.Body
 }
 
+// GetRecipient returns message recipient
 func (m *mes) GetRecipient() int64 {
 	return m.Recipient
 }
 
+// GetOriginator returns message originator
 func (m *mes) GetOriginator() string {
 	return m.Originator
 }

@@ -139,22 +139,24 @@ type smsSplittingLimits struct {
 func getSMSSplittingLimits(e Datacoding) *smsSplittingLimits {
 	var l *smsSplittingLimits
 
-	if e == Plain {
-		// message has plain encoding
+	switch e {
+	case Plain:
 		l = &smsSplittingLimits{
 			NonsplittedSMSLength: nonsplittedPlainSMSLength,
 			SplittedSMSLength:    splittedPlainSMSLength,
 			MaxSMSLength:         maxPlainSMSLength,
 			MaxSMSCharAmount:     maxPlainSMSLength,
 		}
-	} else {
-		// message is unicode
+	case Unicode:
+		// multiplied by unicodeSymbolLengthBytes because some runes can
 		l = &smsSplittingLimits{
 			NonsplittedSMSLength: nonsplittedUnicodeSMSLength * unicodeSymbolLengthBytes,
 			SplittedSMSLength:    splittedUnicodeSMSLength * unicodeSymbolLengthBytes,
 			MaxSMSLength:         maxUnicodeSMSLength * unicodeSymbolLengthBytes,
 			MaxSMSCharAmount:     maxUnicodeSMSLength,
 		}
+	default:
+		break
 	}
 
 	return l
@@ -281,6 +283,7 @@ func splitPlainGSMUC2(m string) []string {
 	return result
 }
 
+// SplitTextMessage determines which encoding is used by message and splits it accordingly by the standards
 func (e *udhenc) SplitTextMessage(m string) *Encoded {
 	result := &Encoded{
 		Encoding: Plain,
@@ -302,6 +305,9 @@ func (e *udhenc) SplitTextMessage(m string) *Encoded {
 	return result
 }
 
+// GenerateUDH generates UDH based on the body hash, part index and overall amount of parts.
+// If message already occurred, to make it possible to send one message to more than one recipient, the UDH is cached
+// by body hash (splitted messages still should have the same unique identifier)
 func (e *udhenc) GenerateUDH(p uint8, parts uint8, mesHash uint32) string {
 	var uniqueID uint8
 

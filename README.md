@@ -1,4 +1,5 @@
-# [[https://github.com/kostkobv/birdfeeder/blob/master/docs/logo.jpg|alt=logo]]Birdfeeder
+![logo][https://github.com/kostkobv/birdfeeder/blob/master/docs/logo.svg]
+
 [![CircleCI](https://circleci.com/gh/kostkobv/birdfeeder.svg?style=svg)](https://circleci.com/gh/kostkobv/birdfeeder)
 [![Go Report Card](https://goreportcard.com/badge/github.com/kostkobv/birdfeeder)](https://goreportcard.com/report/github.com/kostkobv/birdfeeder)
 [![codecov](https://codecov.io/gh/kostkobv/birdfeeder/branch/master/graph/badge.svg)](https://codecov.io/gh/kostkobv/birdfeeder)
@@ -20,7 +21,7 @@ Create an API that accepts SMS messages submitted via a POST request containing 
 - The (theoretical/imaginary) throughput to MessageBird is one API request per second. Make sure the outgoing messages won’t exceed that limit, also when multiple incoming requests are received at the API or concatenated messages need to be send.
 
 ## API
-###POST `/message`
+### POST `/message`
 ```json
 { 
   "recipient": [valid recipient MSISDN],
@@ -32,7 +33,7 @@ Create an API that accepts SMS messages submitted via a POST request containing 
 Forwards message to MessageBird API 
 
 ## How does it work
-[[https://github.com/kostkobv/birdfeeder/blob/master/docs/graph.png|alt=graph]]
+![graph][https://github.com/kostkobv/birdfeeder/blob/master/docs/graph.png]
 
 **A** - Message is submitted to the project's API, validated, converted, gets generated UDH (if needed), splitted and pushed to the queue
 

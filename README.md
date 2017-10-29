@@ -29,13 +29,13 @@ Forwards message to MessageBird API
 #### Required
 `recipient`: valid recipient MSISDN,
 
-`originator`: valid originator accordingly to MessageBird documentation,
+`originator`: valid originator accordingly to MessageBird documentation (MSISDN or alphanumeric value not longer than 11 symbols),
 
 `message`: message content
 
 #### Response
 ##### Success `200`
-Returns the submitted object as a confirmation of correct message
+Returns the submitted object as a confirmation for valid message
 
 ###### Example
 ```JSON
@@ -71,16 +71,18 @@ Returned in case of invalid JSON submitted
 ## How does it work
 ![graph](https://github.com/kostkobv/birdfeeder/blob/master/docs/graph.png)
 
-**A** - Message is submitted to the project's API, validated, converted, gets generated UDH (if needed), splitted and pushed to the queue. Max splitted to 9 parts - rest of the message is discarded and not sent (taken from MessageBird documentation, however GSM documentation said there could be up to 255 parts). Depending on the encoding messages have different limit and split:
-- plain encoding (symbols from GSM 03.38 table):
-1. First message is 160 symbols (some special symbols are counted as 2. Read more: https://en.wikipedia.org/wiki/GSM_03.38).
-2. If message is longer than 160 symbols then it is splitted by 153 symbols long parts. 1 part - 1 SMS
+**A** - Message is submitted to the project's API, validated, converted, gets generated UDH (if needed), splitted and pushed to the queue. Splitted up to 9 parts - rest of the message is discarded and not sent (taken from MessageBird documentation, however GSM documentation says there could be up to 255 parts with low probability of having them all delivered). Depending on the encoding, messages have different limit and it splits using next rules:
+- plain encoding (message contains only symbols from GSM 03.38 table):
+  1. First message is 160 symbols (some special symbols are counted as 2 symbols. Read more: https://en.wikipedia.org/wiki/GSM_03.38).
+  2. If message is longer than 160 symbols then it would be splitted by 153 symbols parts. 1 part - 1 SMS
 
-- unicode encoding (symbols not from GSM 03.38 table):
-1. First message is 70 symbols
-2. If message is longer than 70 symbols then it is splitted by 67 symbols long parts. 1 part - 1 SMS (_for some reason splitting doesn't work for MessageBird API_)
+- unicode encoding (symbols not only from GSM 03.38 table):
+  1. First message is 70 symbols
+  2. If message is longer than 70 symbols it would be splitted by 67 symbols parts. 1 part - 1 SMS (_for some reason splitting doesn't work for MessageBird API_)
 
-**B** - Queue retrieves the collection of pushed messages. Meanwhile queue is not locked but working collection is replaced with new collection on a fly every 1 second if needed. The retrieved collection is analyzed for identical messages but with different recipients so we could send more messages at once. Identical messages with the same recipient are considered to be the same message submitted twice so it's need to be delivered twice.
+**B** - Queue retrieves the collection (cart) of pushed messages. Meanwhile queue is not locked but working collection is replaced with new collection on a fly every 1 second if needed (working cart is not empty). The retrieved collection is analyzed for identical messages but with different recipients so we could send more messages at once. Identical messages with the same recipient are considered to be the same message submitted twice so it's need to be delivered twice.
+
+_It is easier to imagine as pipe from which message items are falling and you're just swaping the carts on a fly every second, so pipe is not blocked. The reason why this approach is taken instead of working with regular channels is quite simple: channels are actually quite slow comparing to regular arrays. Check out source code for more details._
 
 **C** - The message with the biggest amount of recipients would be sent first. The rest of the messages are sent back to the queue. If an error was returned by MessageBird API - the message is also sent back to the queue.
 

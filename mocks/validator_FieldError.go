@@ -7,12 +7,12 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// FieldError contains all functions to get error details
+// FieldErrorMock contains all functions to get error details
 type FieldErrorMock struct {
 	mock.Mock
 }
 
-// returns the validation tag that failed. if the
+// Tag returns the validation tag that failed. if the
 // validation was an alias, this will return the
 // alias name and not the underlying tag that failed.
 //
@@ -23,7 +23,7 @@ func (e *FieldErrorMock) Tag() string {
 	return args.String(0)
 }
 
-// returns the validation tag that failed, even if an
+// ActualTag returns the validation tag that failed, even if an
 // alias the actual tag within the alias will be returned.
 // If an 'or' validation fails the entire or will be returned.
 //
@@ -34,7 +34,7 @@ func (e *FieldErrorMock) ActualTag() string {
 	return args.String(0)
 }
 
-// returns the namespace for the field error, with the tag
+// Namespace returns the namespace for the field error, with the tag
 // name taking precedence over the fields actual name.
 //
 // eg. JSON name "User.fname"
@@ -48,7 +48,7 @@ func (e *FieldErrorMock) Namespace() string {
 	return args.String(0)
 }
 
-// returns the namespace for the field error, with the fields
+// StructNamespace returns the namespace for the field error, with the fields
 // actual name.
 //
 // eq. "User.FirstName" see Namespace for comparison
@@ -60,7 +60,7 @@ func (e *FieldErrorMock) StructNamespace() string {
 	return args.String(0)
 }
 
-// returns the fields name with the tag name taking precedence over the
+// Field returns the fields name with the tag name taking precedence over the
 // fields actual name.
 //
 // eq. JSON name "fname"
@@ -70,7 +70,7 @@ func (e *FieldErrorMock) Field() string {
 	return args.String(0)
 }
 
-// returns the fields actual name from the struct, when able to determine.
+// StructField returns the fields actual name from the struct, when able to determine.
 //
 // eq.  "FirstName"
 // see Field for comparison
@@ -79,14 +79,14 @@ func (e *FieldErrorMock) StructField() string {
 	return args.String(0)
 }
 
-// returns the actual fields value in case needed for creating the error
+// Value returns the actual fields value in case needed for creating the error
 // message
 func (e *FieldErrorMock) Value() interface{} {
 	args := e.Called()
 	return args.String(0)
 }
 
-// returns the param value, in string form for comparison; this will also
+// Param returns the param value, in string form for comparison; this will also
 // help with generating an error message
 func (e *FieldErrorMock) Param() string {
 	args := e.Called()
@@ -109,7 +109,7 @@ func (e *FieldErrorMock) Type() reflect.Type {
 	return args.Get(0).(reflect.Type)
 }
 
-// returns the FieldError's translated error
+// Translate returns the FieldError's translated error
 // from the provided 'ut.Translator' and registered 'TranslationFunc'
 //
 // NOTE: is not registered translation can be found it returns the same
